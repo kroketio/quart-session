@@ -38,7 +38,7 @@ app.run()
 
 ### Redis support
 
-via `aioredis` or `trio-redis` (when using [Trio](https://trio.readthedocs.io/en/stable/)).
+via `aioredis`.
 
 ```python3
 app = Quart(__name__)
@@ -60,11 +60,21 @@ async def setup():
     Session(app)
 ```
 
-#### Trio
+By default, Quart-session creates a single connection to Redis, while
+the example above creates a connection pool.
 
-Quart-Session comes with a Redis client for use with the [Trio](https://trio.readthedocs.io/en/stable/) eventloop.
+#### Trio support
 
+Quart-Session comes with [an (experimental) Redis client](redis) for use with the [Trio](https://trio.readthedocs.io/en/stable/) eventloop.
 
+```python3
+from quart_trio import QuartTrio
+from quart_session.redis_trio.client import RedisTrio
+
+app = QuartTrio(__name__)
+app.config['SESSION_TYPE'] = 'redis'
+Session(app)
+```
 
 ### Memcached support
 
@@ -85,9 +95,9 @@ for session data, Quart-Session opts for a JSON serializer capable of
 
 JSON as session data allows for greater interoperability with other
 programs/languages that might want to read session data straight
-from a back-end. In addition, it is more secure.
+from a back-end.
 
-If, for some unholy reason, you prefer `pickle` or your own serializer,
+If ~~for some unholy reason~~ you prefer `pickle` or your own serializer,
 
 ```python3
 app = Quart(__name__)
@@ -181,7 +191,6 @@ straightforward. The distinct changes are specified below:
 - Quart-Session does not `Set-Cookie` on (static) files by default.
 - Quart-Session might not have all the back-end interfaces implemented (yet), such as "filesystem".
 - Quart-Session uses a different serializer: `quart.json.tag.TaggedJSONSerializer` instead of `pickle`.
-- Quart-Session uses asyncio ;-)
 
 ## Help
 
