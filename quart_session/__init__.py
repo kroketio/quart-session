@@ -17,7 +17,7 @@ from typing import Optional
 
 from quart import Quart
 
-from .sessions import RedisSessionInterface, MemcachedSessionInterface, NullSessionInterface
+from .sessions import RedisSessionInterface, RedisTrioSessionInterface, MemcachedSessionInterface, NullSessionInterface
 
 
 class Session(object):
@@ -51,6 +51,7 @@ class Session(object):
     """
 
     def __init__(self, app: Quart = None) -> None:
+        self._current_async_library = "asyncio"
         self.app = app
         if app is not None:
             self.init_app(app)
@@ -60,6 +61,12 @@ class Session(object):
 
         :param app: the Quart app object with proper configuration.
         """
+        try:
+            import quart_trio
+            if isinstance(app, quart_trio.QuartTrio):
+                self._current_async_library = "trio"
+        except ImportError:
+            pass
         app.session_interface = self._get_interface(app)
 
         @app.before_serving
@@ -85,12 +92,29 @@ class Session(object):
         config = {k: v for k, v in config.items() if k.startswith('SESSION_')}
 
         if config['SESSION_TYPE'] == 'redis':
-            session_interface = RedisSessionInterface(
+            options = {
+                "redis": config['SESSION_REDIS'],
+                "key_prefix": config['SESSION_KEY_PREFIX'],
+                "use_signer": config['SESSION_USE_SIGNER'],
+                "permanent": config['SESSION_PERMANENT'],
+                **config
+            }
+
+            if self._current_async_library == "asyncio":
+                session_interface = RedisSessionInterface(**options)
+            elif self._current_async_library == "trio":
+                session_interface = RedisTrioSessionInterface(**options)
+            else:
+                raise NotImplementedError("Unknown eventloop")
+
+        elif config['SESSION_TYPE'] == 'redis+trio':
+            session_interface = RedisTrioSessionInterface(
                 redis=config['SESSION_REDIS'],
                 key_prefix=config['SESSION_KEY_PREFIX'],
                 use_signer=config['SESSION_USE_SIGNER'],
-                permanent=config['SESSION_PERMANENT'],
-                **config)
+                premanent=config['SESSION_PERMANENT'],
+                **config
+            )
         elif config['SESSION_TYPE'] == 'memcached':
             session_interface = MemcachedSessionInterface(
                 memcached=config['SESSION_MEMCACHED'],
