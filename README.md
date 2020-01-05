@@ -1,4 +1,4 @@
-# Quart-session
+# Quart-Session
 
 Quart-Session is an extension for Quart that adds support for
 server-side sessions to your application.
@@ -55,17 +55,17 @@ app.config['SESSION_TYPE'] = 'redis'
 
 @app.before_serving
 async def setup():
-    cache = await aioredis.create_redis_pool({"address": "..."})
+    cache = await aioredis.create_redis_pool(...)
     app.config['SESSION_REDIS'] = cache
     Session(app)
 ```
 
 By default, Quart-session creates a single connection to Redis, while
-the example above creates a connection pool.
+the example above sets up a connection pool.
 
 #### Trio support
 
-Quart-Session comes with [an (experimental) Redis client](redis) for use with the [Trio](https://trio.readthedocs.io/en/stable/) eventloop.
+Quart-Session comes with [an (experimental) Redis client](quart_session/redis_trio) for use with the [Trio](https://trio.readthedocs.io/en/stable/) eventloop.
 
 ```python3
 from quart_trio import QuartTrio
@@ -149,9 +149,9 @@ To re-gain the old behaviour of always emitting a `Set-Cookie` header on static 
 set `SESSION_STATIC_FILE` to `True`.
 
 
-### Session hijack prevention
+### Session pinning
 
-(Optionally) pins an user's session to his/her IP address. This mitigates cookie stealing via XSS etc, and is handy
+Associates an user's session to his/her IP address. This mitigates cookie stealing via XSS etc, and is handy
 for paranoid web applications.
 
 ```python3
@@ -161,8 +161,7 @@ app.config['SESSION_HIJACK_PROTECTION'] = True
 Session(app)
 ```
 
-With this option, session reuse from a different IP will result in the
-creation of a new session, and the deletion of the old.
+Session reuse from a different IP will now result in the creation of a new session, and the deletion of the old.
 
 **Important:** If your application is behind a reverse proxy, it most
 likely provides the `X-Forwarded-For` header which you **must** make use of
@@ -191,6 +190,7 @@ straightforward. The distinct changes are specified below:
 - Quart-Session does not `Set-Cookie` on (static) files by default.
 - Quart-Session might not have all the back-end interfaces implemented (yet), such as "filesystem".
 - Quart-Session uses a different serializer: `quart.json.tag.TaggedJSONSerializer` instead of `pickle`.
+- Quart-Session disallows the client to supply their own made up `sid` cookie value.
 
 ## Help
 
