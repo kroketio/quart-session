@@ -14,6 +14,9 @@ Links
 """
 from setuptools import setup
 
+with open('README.md') as f:
+    long_description = f.read()
+
 
 INSTALL_REQUIRES = [
     "Quart>=0.10.0"
@@ -27,7 +30,8 @@ setup(
     author='Sander',
     author_email='sander@sanderf.nl',
     description='Adds server-side session support to your Quart application',
-    long_description=__doc__,
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=['quart_session'],
     zip_safe=False,
     include_package_data=True,

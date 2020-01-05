@@ -1,0 +1,9 @@
+include LICENSE
+include CHANGELOG.md
+include README.md
+include setup.cfg
+recursive-include quart_session *.py
+recursive-include quart_session *.md
+exclude .gitlab-ci.yml
+exclude examples
+exclude docs
