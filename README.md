@@ -65,7 +65,7 @@ the example above creates a connection pool.
 
 #### Trio support
 
-Quart-Session comes with [an (experimental) Redis client](redis) for use with the [Trio](https://trio.readthedocs.io/en/stable/) eventloop.
+Quart-Session comes with [an (experimental) Redis client](quart_session/redis_trio) for use with the [Trio](https://trio.readthedocs.io/en/stable/) eventloop.
 
 ```python3
 from quart_trio import QuartTrio
@@ -191,6 +191,7 @@ straightforward. The distinct changes are specified below:
 - Quart-Session does not `Set-Cookie` on (static) files by default.
 - Quart-Session might not have all the back-end interfaces implemented (yet), such as "filesystem".
 - Quart-Session uses a different serializer: `quart.json.tag.TaggedJSONSerializer` instead of `pickle`.
+- Quart-Session disallows the client to supply their own made up `sid` cookie value.
 
 ## Help
 
