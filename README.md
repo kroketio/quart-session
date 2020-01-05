@@ -1,5 +1,7 @@
 # Quart-Session
 
+![pyversions](https://img.shields.io/pypi/pyversions/Quart-Session.svg) [![pypiversion](https://badge.fury.io/py/Quart-Session.svg)](https://pypi.org/project/Quart-Session/) ![PyPI license](https://img.shields.io/pypi/l/Quart-Session.svg)
+
 Quart-Session is an extension for Quart that adds support for
 server-side sessions to your application.
 
