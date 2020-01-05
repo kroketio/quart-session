@@ -100,7 +100,9 @@ class SessionInterface(QuartSessionInterface):
         self._config = kwargs
 
     async def open_session(
-            self, app: Quart, request: BaseRequestWebsocket
+            self,
+            app: Quart,
+            request: BaseRequestWebsocket
     ) -> Optional[SecureCookieSession]:
         sid = request.cookies.get(app.session_cookie_name)
         addr = request.headers.get('X-Forwarded-For', request.remote_addr) if \
@@ -137,10 +139,7 @@ class SessionInterface(QuartSessionInterface):
             return self.session_class(**options)
 
         prevent_hijack = self._config['SESSION_HIJACK_PROTECTION']
-        if prevent_hijack is False:
-            pass
-        elif isinstance(prevent_hijack, bool) and \
-                prevent_hijack is True:
+        if prevent_hijack is True:
             if self._config['SESSION_HIJACK_REVERSE_PROXY'] is True:
                 addr = request.headers.get('X-Forwarded-For', request.remote_addr)
             else:
@@ -160,12 +159,12 @@ class SessionInterface(QuartSessionInterface):
         response: Response
     ) -> None:
         # prevent set-cookie
-        # motivation: https://github.com/fengsp/flask-session/pull/70
         if self._config['SESSION_EXPLICIT'] is True and \
                 not session._dirty:
             return
 
         # prevent set-cookie on (static) file responses
+        # https://github.com/fengsp/flask-session/pull/70
         if self._config['SESSION_STATIC_FILE'] is False and \
                 isinstance(response.response, FileBody):
             return
@@ -226,15 +225,18 @@ class RedisSessionInterface(SessionInterface):
 
     session_class = RedisSession
 
-    def __init__(
-            self, redis, key_prefix: str, use_signer: bool = False,
-            permanent: bool = True, **kwargs):
-        super(RedisSessionInterface, self).__init__(
-            key_prefix=key_prefix, use_signer=use_signer,
-            permanent=permanent, **kwargs)
+    def __init__(self, redis, **kwargs):
+        super(RedisSessionInterface, self).__init__(**kwargs)
         self.redis = redis
 
     async def create(self, app: Quart) -> None:
+        """Creates ``aioredis.Redis`` instance.
+
+        .. note::
+
+            Creates a single Redis connection, you might prefer
+            pooling instead (see ``aioredis.Redis.create_redis_pool``)
+        """
         if self.redis is None:
             import aioredis
             self.redis = await aioredis.create_redis("redis://localhost")
@@ -249,6 +251,49 @@ class RedisSessionInterface(SessionInterface):
 
     async def _backend_delete(self, app: Quart, key: str):
         return await self.redis.delete(key)
+
+
+class RedisTrioSessionInterface(SessionInterface):
+    """Uses the Redis+Trio key-value store as a session backend.
+
+    :param redis: ``quart_session.redis_trio.RedisTrio`` instance.
+    :param key_prefix: A prefix that is added to all Redis store keys.
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    :param kwargs: Quart-session config, used internally.
+    """
+
+    session_class = RedisSession
+
+    def __init__(self, redis, **kwargs):
+        super(RedisTrioSessionInterface, self).__init__(**kwargs)
+        self.redis_trio = redis
+
+    async def create(self, app: Quart) -> None:
+        """Creates ``aioredis.Redis`` instance.
+
+        .. note::
+
+            Creates a single Redis connection. Pooling not
+            supported yet for ``RedisTrio``.
+        """
+        if self.redis_trio is None:
+            from quart_session.redis_trio import RedisTrio
+            self.redis_trio = RedisTrio()
+            await self.redis_trio.connect()
+
+    async def _backend_get(self, app: Quart, key: str):
+        data = await self.redis_trio.get(key)
+        if data:
+            return data.decode()
+
+    async def _backend_set(self, app: Quart, key: str, value):
+        return await self.redis_trio.setex(
+            key=key, value=value,
+            seconds=total_seconds(app.permanent_session_lifetime))
+
+    async def _backend_delete(self, app: Quart, key: str):
+        return await self.redis_trio.delete(key)
 
 
 class MemcachedSessionInterface(SessionInterface):
