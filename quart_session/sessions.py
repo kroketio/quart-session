@@ -105,8 +105,10 @@ class SessionInterface(QuartSessionInterface):
             request: BaseRequestWebsocket
     ) -> Optional[SecureCookieSession]:
         sid = request.cookies.get(app.session_cookie_name)
-        addr = request.headers.get('X-Forwarded-For', request.remote_addr) if \
-            self._config['SESSION_HIJACK_PROTECTION'] else None
+        if self._config['SESSION_HIJACK_REVERSE_PROXY'] is True:
+            addr = request.headers.get('X-Forwarded-For', request.remote_addr)
+        else:
+            addr = request.remote_addr
         options = {"sid": sid, "permanent": self.permanent, "addr": addr}
 
         if not sid:
@@ -139,15 +141,10 @@ class SessionInterface(QuartSessionInterface):
             return self.session_class(**options)
 
         prevent_hijack = self._config['SESSION_HIJACK_PROTECTION']
-        if prevent_hijack is True:
-            if self._config['SESSION_HIJACK_REVERSE_PROXY'] is True:
-                addr = request.headers.get('X-Forwarded-For', request.remote_addr)
-            else:
-                addr = request.remote_addr
-            if data.get('_addr', addr) != addr:
-                await self._backend_delete(app, self.key_prefix + sid)
-                options['sid'] = self._generate_sid()
-                return self.session_class(**options)
+        if prevent_hijack is True and data.get('_addr', addr) != addr:
+            await self._backend_delete(app, self.key_prefix + sid)
+            options['sid'] = self._generate_sid()
+            return self.session_class(**options)
 
         res = self.session_class(data, sid)
         return res
