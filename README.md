@@ -9,8 +9,7 @@ Based on [flask-session](https://pypi.org/project/Flask-Session/).
 
 ## Quick start
 
-Quart-Session can be installed via pipenv or
-pip,
+Quart-Session can be installed via pipenv or pip,
 
 ```bash
 $ pipenv install quart-session
@@ -91,8 +90,8 @@ Session(app)
 ### JSON serializer
 
 [flask-session](https://pypi.org/project/Flask-Session/) uses `pickle`
-for session data, Quart-Session opts for a JSON serializer capable of
-(de)serializing the usual JSON types, as well as: `Tuple`, `Bytes`,
+for session data while Quart-Session uses [a JSON serializer](https://gitlab.com/pgjones/quart/blob/37e249b9b146824a8668eaa1daa12392aeb00256/src/quart/json/tag.py#L141)
+capable of serializing the usual JSON types, as well as: `Tuple`, `Bytes`,
 `Markup`, `UUID`, and `DateTime`.
 
 JSON as session data allows for greater interoperability with other
@@ -114,52 +113,42 @@ except ImportError:
 app.session_interface.serialize = pickle
 ```
 
-### Session control
+### Back-end usage
 
-By default, [flask-session](https://pypi.org/project/Flask-Session/) sets a
-session for each incoming request, including static files. From experience,
-this approach can put unneeded load on underlying session infrastructure,
-especially in high-traffic environments.
-
-Quart-Session offers control over the session creation. For example, often you'll only need to create a session when
-a user successfully logs in.
-
-To enable this behaviour, set `SESSION_EXPLICIT` to `True`.
+At any point you may interface with the session back-end directly:
 
 ```python3
-app = Quart(__name__)
-app.config['SESSION_TYPE'] = 'redis'
-app.config['SESSION_EXPLICIT'] = True
-Session(app)
-
-@app.route('/')
-async def root():
-    if session.get('authenticated'):
-        return "Welcome back!"
-    return "Welcome anonymous!"
-
-@app.route('/login')
-async def login():
-    session["authenticated"] = True
-    session.dirty()  # mark session for saving
-    return 'Logged in!'
-
-app.run()
+@app.route("/")
+async def hello():
+    cache = app.session_interface
+    await cache.set("random_key", "val", expiry=3600)
+    data = await cache.get("random_key")
 ```
 
-To re-gain the old behaviour of always emitting a `Set-Cookie` header on static file serves,
-set `SESSION_STATIC_FILE` to `True`.
+The interface will have the `get`, `set`, and `delete` methods available (regardless of
+back-end - similar to how [aiocache](https://github.com/argaen/aiocache) works).
+
+### Performance
+
+[flask-session](https://pypi.org/project/Flask-Session/) sets a
+session for each incoming request, including static files. From experience,
+this often puts unneeded load on underlying session infrastructure,
+especially in high-traffic environments.
+
+Quart-Session only contacts the back-end when a session changed (or created). In addition,
+static file serves never emit a `Set-Cookie` header. If you'd like to enable
+this though, set `SESSION_STATIC_FILE` to `True`.
 
 
 ### Session pinning
 
 Associates an user's session to his/her IP address. This mitigates cookie stealing via XSS etc, and is handy
-for paranoid web applications.
+for web applications that require extra security.
 
 ```python3
 app = Quart(__name__)
 app.config['SESSION_TYPE'] = 'redis'
-app.config['SESSION_HIJACK_PROTECTION'] = True
+app.config['SESSION_PROTECTION'] = True
 Session(app)
 ```
 
@@ -167,32 +156,26 @@ Session reuse from a different IP will now result in the creation of a new sessi
 
 **Important:** If your application is behind a reverse proxy, it most
 likely provides the `X-Forwarded-For` header which you **must** make use of
-by explicitly setting `SESSION_HIJACK_REVERSE_PROXY` to `True`.
+by explicitly setting `SESSION_REVERSE_PROXY` to `True`.
 
 ## Future development
-
-The following session interfaces would be nice to have:
 
 - `MongoDBSessionInterface`
 - `FileSystemSessionInterface`
 - `GoogleCloudDatastoreSessionInterface`
+- Pytest
 
-Other to-do's:
-
-- Unit testing
-- Documentation (Sphinx)
-
-## Migrating from Flask
+## Flask-Session
 
 This library works very similarly to [flask-session](https://pypi.org/project/Flask-Session/).
-The `quart_session.sessions` APIs are not 100% the same, but unless you
-are embedded in Flask-Session's internals, a migration should be fairly
-straightforward. The distinct changes are specified below:
+The changes are specified below:
 
-- Quart-Session does not `Set-Cookie` on (static) files by default.
-- Quart-Session might not have all the back-end interfaces implemented (yet), such as "filesystem".
+- Quart-Session does not emit a `Set-Cookie` on every request.
+- Quart-Session does not emit a `Set-Cookie` on static file serves.
 - Quart-Session uses a different serializer: `quart.json.tag.TaggedJSONSerializer` instead of `pickle`.
 - Quart-Session disallows the client to supply their own made up `sid` cookie value.
+- Quart-Session can do session protection.
+- Quart-Session might not have all the back-end interfaces implemented (yet), such as "filesystem".
 
 ## Help
 

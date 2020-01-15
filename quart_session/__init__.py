@@ -10,10 +10,9 @@
     :license: BSD, see LICENSE for more details.
 """
 
-__version__ = '0.0.1'
+__version__ = '1.0.0'
 
 import os
-from typing import Optional
 
 from quart import Quart
 
@@ -79,8 +78,8 @@ class Session(object):
         config.setdefault('SESSION_PERMANENT', True)
         config.setdefault('SESSION_USE_SIGNER', False)
         config.setdefault('SESSION_KEY_PREFIX', 'session:')
-        config.setdefault('SESSION_HIJACK_PROTECTION', False)
-        config.setdefault('SESSION_HIJACK_REVERSE_PROXY', False)
+        config.setdefault('SESSION_PROTECTION', False)
+        config.setdefault('SESSION_REVERSE_PROXY', False)
         config.setdefault('SESSION_STATIC_FILE', False)
         config.setdefault('SESSION_EXPLICIT', False)
         config.setdefault('SESSION_REDIS', None)
@@ -90,6 +89,14 @@ class Session(object):
         config.setdefault('SESSION_FILE_THRESHOLD', 500)
         config.setdefault('SESSION_FILE_MODE', 384)
         config = {k: v for k, v in config.items() if k.startswith('SESSION_')}
+
+        if isinstance(config.get("SESSION_HIJACK_PROTECTION"), bool):
+            app.logger.warning("Deprecation: `SESSION_HIJACK_PROTECTION` "
+                               "has been renamed to `SESSION_PROTECTION`")
+
+        if isinstance(config.get("SESSION_HIJACK_REVERSE_PROXY"), str):
+            app.logger.warning("Deprecation: `SESSION_HIJACK_REVERSE_PROXY` "
+                               "has been renamed to `SESSION_REVERSE_PROXY`")
 
         if config['SESSION_TYPE'] == 'redis':
             options = {
