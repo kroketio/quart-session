@@ -24,7 +24,7 @@ INSTALL_REQUIRES = [
 
 setup(
     name='Quart-Session',
-    version='0.0.1',
+    version='1.0.0',
     url='https://github.com/xmrdsc/quart-session',
     license='BSD',
     author='dsc',
