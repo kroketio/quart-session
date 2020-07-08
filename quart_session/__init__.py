@@ -98,6 +98,10 @@ class Session(object):
             app.logger.warning("Deprecation: `SESSION_HIJACK_REVERSE_PROXY` "
                                "has been renamed to `SESSION_REVERSE_PROXY`")
 
+        backend_warning = f"Please specify a session backend. " \
+                          f"Available interfaces: redis, redis+trio, " \
+                          f"memcached, null. e.g: app.config['SESSION_TYPE'] = 'redis'"
+
         if config['SESSION_TYPE'] == 'redis':
             options = {
                 "redis": config['SESSION_REDIS'],
@@ -129,7 +133,15 @@ class Session(object):
                 use_signer=config['SESSION_USE_SIGNER'],
                 permanent=config['SESSION_PERMANENT'],
                 **config)
+        elif config['SESSION_TYPE'] == 'null':
+            app.logger.warning(f"{backend_warning}. Currently using: null")
+            session_interface = NullSessionInterface(
+                key_prefix=config['SESSION_KEY_PREFIX'],
+                use_signer=config['SESSION_USE_SIGNER'],
+                permanent=config['SESSION_PERMANENT'],
+                **config)
         else:
-            session_interface = NullSessionInterface()
+            raise NotImplementedError(f"No such session interface "
+                                      f"\"{config['SESSION_TYPE']}\". {backend_warning}")
 
         return session_interface
