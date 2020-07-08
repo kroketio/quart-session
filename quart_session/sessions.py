@@ -354,8 +354,23 @@ class MemcachedSessionInterface(SessionInterface):
 
 
 class NullSessionInterface(SessionInterface):
-    """Used to open a :class:`quart.sessions.NullSession` instance.
-    """
+    """This class does absolutely nothing"""
+    session_class = NullSession
 
-    def open_session(self, app: Quart, request: BaseRequestWebsocket):
-        return None
+    def __init__(
+            self, key_prefix: str, use_signer: bool = False,
+            permanent: bool = True, **kwargs):
+        super(NullSessionInterface, self).__init__(
+            key_prefix=key_prefix, use_signer=use_signer,
+            permanent=permanent, **kwargs)
+        self.backend = None
+
+    async def create(self, app: Quart) -> None:
+        pass
+
+    async def get(self, key: str, app: Quart = None) -> None:
+        pass
+
+    async def set(self, key: str, value, expiry: int = None,
+                  app: Quart = None) -> None:
+        pass
