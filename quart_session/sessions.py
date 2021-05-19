@@ -165,6 +165,7 @@ class SessionInterface(QuartSessionInterface):
                                        domain=domain, path=path)
             return
         httponly = self.get_cookie_httponly(app)
+        samesite = self.get_cookie_samesite(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
 
@@ -176,7 +177,7 @@ class SessionInterface(QuartSessionInterface):
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,
                             expires=expires, httponly=httponly,
-                            domain=domain, path=path, secure=secure)
+                            domain=domain, path=path, secure=secure, samesite=samesite)
 
     async def create(self, app: Quart):
         raise NotImplementedError()
@@ -316,7 +317,10 @@ class MemcachedSessionInterface(SessionInterface):
         if self.backend is None:
             import aiomcache
             loop = asyncio.get_running_loop()
-            self.backend = aiomcache.Client("127.0.0.1", 11211, loop=loop)
+            #self.backend = aiomcache.Client("127.0.0.1", 11211, loop=loop)
+            self.backend = aiomcache.Client(self._config.get('SESSION_MEMCACHED_HOST', '127.0.0.1'),
+                                            self._config.get('SESSION_MEMCACHED_PORT', 11211),
+                                            loop=loop)
 
     def _get_memcache_timeout(self, timeout):
         """
