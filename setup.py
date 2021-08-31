@@ -38,7 +38,10 @@ setup(
     platforms='any',
     install_requires=INSTALL_REQUIRES,
     tests_require=INSTALL_REQUIRES + ["asynctest", "hypothesis", "pytest", "pytest-asyncio"],
-    extras_require={"dotenv": ["python-dotenv"]},
+    extras_require={
+        "dotenv": ["python-dotenv"],
+        "redis": ["aioredis>=2.0.0"]
+    },
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

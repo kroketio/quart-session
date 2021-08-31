@@ -228,8 +228,9 @@ class RedisSessionInterface(SessionInterface):
         """
         if self.backend is None:
             import aioredis
-            self.backend = await aioredis.create_redis(
-                "redis://localhost")
+            self.backend = await aioredis.from_url(
+                "redis://localhost", encoding="utf-8", decode_responses=True
+            )
 
     async def get(self, key: str, app: Quart = None):
         return await self.backend.get(key)
@@ -239,8 +240,8 @@ class RedisSessionInterface(SessionInterface):
         if app and not expiry:
             expiry = total_seconds(app.permanent_session_lifetime)
         return await self.backend.setex(
-            key=key, value=value,
-            seconds=expiry)
+            name=key, value=value,
+            time=expiry)
 
     async def delete(self, key: str, app: Quart = None):
         return await self.backend.delete(key)
