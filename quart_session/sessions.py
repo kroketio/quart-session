@@ -224,7 +224,8 @@ class RedisSessionInterface(SessionInterface):
         .. note::
 
             Creates a single Redis connection, you might prefer
-            pooling instead (see ``aioredis.Redis.create_redis_pool``)
+            pooling instead (see the `aioredis` documentation
+            for connection pool examples).
         """
         if self.backend is None:
             import aioredis
