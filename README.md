@@ -16,7 +16,7 @@ $ pipenv install quart-session
 $ pip install quart-session
 ```
 
-and requires Python 3.7.0 or higher. A fairly minimal Quart-Session example is,
+and requires Python 3.7.0 or higher. A minimal Quart-Session example is:
 
 ```python3
 from quart import Quart, session
@@ -24,13 +24,16 @@ from quart_session import Session
 
 app = Quart(__name__)
 app.config['SESSION_TYPE'] = 'redis'
-app.config['SESSION_URI'] = 'redis://:password@localhost:6379'
 Session(app)
 
 @app.route('/')
 async def hello():
     session["foo"] = "bar"
-    return 'hello'
+    return "session key 'foo' set"
+
+@app.route('/foo')
+async def foo():
+    return session.get("foo", "session key 'foo' not found")
 
 app.run()
 ```
@@ -38,9 +41,9 @@ app.run()
 ## Features
 
 
-### Redis support
+### Redis
 
-via `aioredis`.
+via `aioredis>=2.0.0`.
 
 ```python3
 app = Quart(__name__)
@@ -48,8 +51,16 @@ app.config['SESSION_TYPE'] = 'redis'
 Session(app)
 ```
 
-If you already have a `aioredis.Client` instance and you'd like to share
-it with the session interface,
+By default, Quart-session connects to Redis at `127.0.0.1:6379`. If you 
+have a different location, use `SESSION_URI`
+
+```python3
+app = Quart(__name__)
+app.config['SESSION_TYPE'] = 'redis'
+app.config['SESSION_URI'] = 'redis://:password@localhost:6379'
+```
+
+Alternatively, for extra control, you may provide your own `aioredis.Client` instance altogether.
 
 ```python3
 app = Quart(__name__)
@@ -57,15 +68,17 @@ app.config['SESSION_TYPE'] = 'redis'
 
 @app.before_serving
 async def setup():
-    cache = await aioredis.create_redis_pool(...)
+    cache = await aioredis.Redis(
+        host="foobar.com",
+        port=6379,
+        password="foobar"
+    )
+    
     app.config['SESSION_REDIS'] = cache
     Session(app)
 ```
 
-By default, Quart-session creates a single connection to Redis, while
-the example above sets up a connection pool.
-
-#### Trio support
+#### Trio
 
 Quart-Session comes with [an (experimental) Redis client](quart_session/redis_trio) for use with the [Trio](https://trio.readthedocs.io/en/stable/) eventloop.
 
@@ -78,7 +91,7 @@ app.config['SESSION_TYPE'] = 'redis'
 Session(app)
 ```
 
-### Memcached support
+### Memcached
 
 via `aiomcache`.
 
