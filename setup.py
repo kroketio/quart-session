@@ -24,7 +24,7 @@ INSTALL_REQUIRES = [
 
 setup(
     name='Quart-Session',
-    version='1.0.3',
+    version='1.0.4',
     url='https://github.com/sferdi0/quart-session',
     license='BSD',
     author='Sander',
