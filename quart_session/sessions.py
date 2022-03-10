@@ -228,8 +228,9 @@ class RedisSessionInterface(SessionInterface):
         """
         if self.backend is None:
             import aioredis
+            uri = app.config.get('SESSION_URI', 'redis://localhost')
             self.backend = await aioredis.from_url(
-                "redis://localhost", encoding="utf-8", decode_responses=True
+                uri, encoding="utf-8", decode_responses=True
             )
 
     async def get(self, key: str, app: Quart = None):
