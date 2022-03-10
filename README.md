@@ -24,6 +24,7 @@ from quart_session import Session
 
 app = Quart(__name__)
 app.config['SESSION_TYPE'] = 'redis'
+app.config['SESSION_URI'] = 'redis://:password@localhost:6379'
 Session(app)
 
 @app.route('/')
