@@ -24,7 +24,7 @@ INSTALL_REQUIRES = [
 
 setup(
     name='Quart-Session',
-    version='1.0.4',
+    version='1.0.5-dev',
     url='https://github.com/sferdi0/quart-session',
     license='BSD',
     author='Sander',
@@ -40,6 +40,7 @@ setup(
     tests_require=INSTALL_REQUIRES + ["asynctest", "hypothesis", "pytest", "pytest-asyncio"],
     extras_require={
         "dotenv": ["python-dotenv"],
+        "mongodb": ["motor>=2.5.1"],
         "redis": ["aioredis>=2.0.0"]
     },
     classifiers=[
