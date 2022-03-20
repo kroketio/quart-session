@@ -10,13 +10,19 @@
     :license: BSD, see LICENSE for more details.
 """
 
-__version__ = '1.0.4'
+__version__ = '1.0.5-dev'
 
 import os
 
 from quart import Quart
 
-from .sessions import RedisSessionInterface, RedisTrioSessionInterface, MemcachedSessionInterface, NullSessionInterface
+from .sessions import (
+    RedisSessionInterface,
+    RedisTrioSessionInterface,
+    MemcachedSessionInterface,
+    MongoDBSessionInterface,
+    NullSessionInterface
+)
 
 
 class Session(object):
@@ -129,6 +135,16 @@ class Session(object):
         elif config['SESSION_TYPE'] == 'memcached':
             session_interface = MemcachedSessionInterface(
                 memcached=config['SESSION_MEMCACHED'],
+                key_prefix=config['SESSION_KEY_PREFIX'],
+                use_signer=config['SESSION_USE_SIGNER'],
+                permanent=config['SESSION_PERMANENT'],
+                **config)
+        elif config['SESSION_TYPE'] == 'mongodb':
+            session_interface = MongoDBSessionInterface(
+                mongodb_uri=config['SESSION_MONGODB_URI'],
+                collection=config['SESSION_MONGODB_COLLECTION'],
+                client_kwargs=config.get('SESSION_MONGODB_CLIENT_KWARGS', {}),
+                set_callback=config.get('SESSION_MONGODB_SET_CALLBACK'),
                 key_prefix=config['SESSION_KEY_PREFIX'],
                 use_signer=config['SESSION_USE_SIGNER'],
                 permanent=config['SESSION_PERMANENT'],

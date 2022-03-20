@@ -101,6 +101,18 @@ app.config['SESSION_TYPE'] = 'memcached'
 Session(app)
 ```
 
+### MongoDB
+
+via `motor`.
+
+```python3
+app = Quart(__name__)
+app.config['SESSION_TYPE'] = 'mongodb'
+app.config['SESSION_MONGODB_URI'] = 'mongodb://localhost:27017/my_database'
+app.config['SESSION_MONGODB_COLLECTION'] = 'sessions'
+Session(app)
+```
+
 ### JSON serializer
 
 [flask-session](https://pypi.org/project/Flask-Session/) uses `pickle`
@@ -174,7 +186,6 @@ by explicitly setting `SESSION_REVERSE_PROXY` to `True`.
 
 ## Future development
 
-- `MongoDBSessionInterface`
 - `FileSystemSessionInterface`
 - `GoogleCloudDatastoreSessionInterface`
 - Pytest

@@ -11,8 +11,9 @@
 """
 import time
 from typing import Optional
-from uuid import uuid4
+from uuid import uuid4, UUID
 import asyncio
+import functools
 
 from quart import Quart, current_app
 from quart.wrappers import BaseRequestWebsocket, Response
@@ -57,6 +58,10 @@ class RedisSession(ServerSideSession):
 
 
 class MemcachedSession(ServerSideSession):
+    pass
+
+
+class MongoDBSession(ServerSideSession):
     pass
 
 
@@ -120,14 +125,17 @@ class SessionInterface(QuartSessionInterface):
             options['sid'] = self._generate_sid()
             return self.session_class(**options)
 
-        try:
-            data = self.serializer.loads(val)
-        except:
-            app.logger.warning(f"Failed to deserialize session "
-                               f"data for sid: {sid}. Generating new sid.")
-            app.logger.debug(f"data: {val}")
-            options['sid'] = self._generate_sid()
-            return self.session_class(**options)
+        if self.serializer is None:
+            data = val
+        else:
+            try:
+                data = self.serializer.loads(val)
+            except:
+                app.logger.warning(f"Failed to deserialize session "
+                                   f"data for sid: {sid}. Generating new sid.")
+                app.logger.debug(f"data: {val}")
+                options['sid'] = self._generate_sid()
+                return self.session_class(**options)
 
         protection = self._config['SESSION_PROTECTION']
         if protection is True and addr is not None and \
@@ -169,7 +177,11 @@ class SessionInterface(QuartSessionInterface):
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
 
-        val = self.serializer.dumps(dict(session))
+        if self.serializer is None:
+            val = dict(session)
+        else:
+            val = self.serializer.dumps(dict(session))
+
         await self.set(key=session_key, value=val, app=app)
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
@@ -358,6 +370,82 @@ class MemcachedSessionInterface(SessionInterface):
     async def delete(self, key: str, app: Quart = None):
         key = key.encode()
         return await self.backend.delete(key)
+
+
+def _convert_key_to_uuid(func):
+    """
+        convert the session UUID to a UUID object for mongodb
+
+        example:
+            "session:b8ebbf02-cc7a-4b0b-824f-22a984c8c0b8" ->
+            UUID("b8ebbf02-cc7a-4b0b-824f-22a984c8c0b8")
+
+    """
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        if 'key' in kwargs:
+            key = kwargs['key']
+            try:
+                if key.startswith('session:'):
+                    _, _uuid = tuple(key.split(':'))
+                    kwargs['key'] = UUID(_uuid)
+            except Exception as e:
+                current_app.logger.warning(
+                    f"session could not be converted to a uuid object: {key}"
+                )
+        return await func(*args, **kwargs)
+    return wrapper
+
+
+class MongoDBSessionInterface(SessionInterface):
+    # mongodb does not a serializer as many object types are properly handled by the connector
+    serializer = None
+    session_class = MongoDBSession
+
+    def __init__(self, mongodb_uri, collection, client_kwargs={}, set_callback=None, **kwargs):
+        from motor.motor_asyncio import AsyncIOMotorClient
+
+        super().__init__(**kwargs)
+        self.mongodb_uri = mongodb_uri
+        self.client_kwargs = client_kwargs
+        self.set_callback = set_callback
+        self._collection = collection
+        self._client = AsyncIOMotorClient(self.mongodb_uri, uuidRepresentation='standard', **self.client_kwargs)
+        self._database = self._client.get_database()
+
+    async def create(self, app: Quart) -> None:
+        pass
+
+    @_convert_key_to_uuid
+    async def get(self, key, app):
+        value = await self.collection.find_one({'_id': key}, {'data': True})
+        if value:
+            return value.get('data', {})
+        else:
+            return None
+
+    @_convert_key_to_uuid
+    async def set(self, key, value, expiry=None, app=None):
+        doc = {
+            'data': value,
+        }
+
+        # allows the document to be modified prior upsert
+        if callable(self.set_callback):
+            self.set_callback(doc)
+
+        await self.collection.update_one({
+                '_id': key
+            }, {
+                '$set': doc
+            },
+            upsert=True
+        )
+
+    @property
+    def collection(self):
+        return self._database.get_collection(self._collection)
 
 
 class NullSessionInterface(SessionInterface):
