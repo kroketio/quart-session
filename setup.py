@@ -9,7 +9,7 @@ Links
 `````
 
 * `Github
-  <https://github.com/sferdi0/quart-session>`_
+  <https://github.com/kroketio/quart-session>`_
 
 """
 from setuptools import setup
@@ -24,11 +24,11 @@ INSTALL_REQUIRES = [
 
 setup(
     name='Quart-Session',
-    version='1.0.5-dev',
-    url='https://github.com/sferdi0/quart-session',
+    version='1.0.6',
+    url='https://github.com/kroketio/quart-session',
     license='BSD',
-    author='Sander',
-    author_email='sander@sanderf.nl',
+    author='Kroket Ltd.',
+    author_email='code@kroket.io',
     description='Adds server-side session support to your Quart application',
     long_description=long_description,
     long_description_content_type='text/markdown',

@@ -7,3 +7,4 @@ recursive-include quart_session *.md
 exclude .gitlab-ci.yml
 exclude examples
 exclude docs
+exclude venv

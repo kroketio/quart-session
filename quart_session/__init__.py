@@ -6,11 +6,11 @@
     Adds server session support to your application.
 
     :copyright: (c) 2014 by Shipeng Feng.
-    :copyright: (c) 2020 by Sander.
+    :copyright: (c) 2020 by Kroket Ltd.
     :license: BSD, see LICENSE for more details.
 """
 
-__version__ = '1.0.5-dev'
+__version__ = '1.0.6'
 
 import os
 

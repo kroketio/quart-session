@@ -5,7 +5,7 @@
 
     Quart-Session demo.
 
-    :copyright: (c) 2020 by Sander.
+    :copyright: (c) 2020 by Kroket Ltd.
     :license: BSD, see LICENSE for more details.
 """
 from quart import Quart, session

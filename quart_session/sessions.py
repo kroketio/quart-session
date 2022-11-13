@@ -6,7 +6,7 @@
     Server-side Sessions and SessionInterfaces.
 
     :copyright: (c) 2014 by Shipeng Feng.
-    :copyright: (c) 2020 by Sander.
+    :copyright: (c) 2020 by Kroket Ltd.
     :license: BSD, see LICENSE for more details.
 """
 import time
@@ -194,7 +194,7 @@ class SessionInterface(QuartSessionInterface):
     async def create(self, app: Quart):
         raise NotImplementedError()
 
-    async def get(self, app: Quart, key: str):
+    async def get(self, key: str, app: Quart = None):
         raise NotImplementedError()
 
     async def set(self, key: str, value, expiry: int = None,

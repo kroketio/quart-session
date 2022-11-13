@@ -1,7 +1,12 @@
+### 1.0.6
+
+- MongoDB support
+- Transfer copyright to Kroket Ltd.
+
 ### 1.0.3 2021-08-31
 
 - Migrated to aioredis 2
-- SameSite support https://github.com/sanderfoobar/quart-session/commit/8daae3a6734e8f7da13954d5a1a5da8f5fc5a49a
+- SameSite support https://github.com/kroketio/quart-session/commit/8daae3a6734e8f7da13954d5a1a5da8f5fc5a49a
 - Memcached stuff https://github.com/filak/quart-session/commit/004871c495a069784e57e604b69f65af1b7e645a
 
 ### 1.0.0 2020-01-15

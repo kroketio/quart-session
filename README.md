@@ -144,9 +144,11 @@ app.session_interface.serialize = pickle
 At any point you may interface with the session back-end directly:
 
 ```python3
+from quart_session.sessions import SessionInterface
+
 @app.route("/")
 async def hello():
-    cache = app.session_interface
+    cache: SessionInterface = app.session_interface
     await cache.set("random_key", "val", expiry=3600)
     data = await cache.get("random_key")
 ```
