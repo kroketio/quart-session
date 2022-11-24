@@ -327,15 +327,12 @@ class MemcachedSessionInterface(SessionInterface):
             permanent=permanent, **kwargs)
         self.backend = memcached
 
-    @asyncio.coroutine
-    def create(self, app: Quart) -> None:
+    async def create(self, app: Quart) -> None:
         if self.backend is None:
             import aiomcache
-            loop = asyncio.get_running_loop()
-            #self.backend = aiomcache.Client("127.0.0.1", 11211, loop=loop)
+            # self.backend = aiomcache.Client("127.0.0.1", 11211)
             self.backend = aiomcache.Client(self._config.get('SESSION_MEMCACHED_HOST', '127.0.0.1'),
-                                            self._config.get('SESSION_MEMCACHED_PORT', 11211),
-                                            loop=loop)
+                                            self._config.get('SESSION_MEMCACHED_PORT', 11211))
 
     def _get_memcache_timeout(self, timeout):
         """
