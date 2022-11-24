@@ -1,3 +1,7 @@
+### 1.0.7
+
+- Updated memcached support (removed asyncio.loop, removed coroutine decorator)
+
 ### 1.0.6
 
 - MongoDB support

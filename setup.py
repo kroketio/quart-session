@@ -24,7 +24,7 @@ INSTALL_REQUIRES = [
 
 setup(
     name='Quart-Session',
-    version='1.0.6',
+    version='1.0.7',
     url='https://github.com/kroketio/quart-session',
     license='BSD',
     author='Kroket Ltd.',
