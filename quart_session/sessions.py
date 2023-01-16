@@ -240,7 +240,7 @@ class RedisSessionInterface(SessionInterface):
             for connection pool examples).
         """
         if self.backend is None:
-            import aioredis
+            from redis import asyncio as aioredis
             uri = self._config.get('SESSION_URI', 'redis://localhost')
             self.backend = await aioredis.from_url(
                 uri, encoding="utf-8", decode_responses=True

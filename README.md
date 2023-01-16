@@ -43,7 +43,7 @@ app.run()
 
 ### Redis
 
-via `aioredis>=2.0.0`.
+via `redis>=4.4.0`.
 
 ```python3
 app = Quart(__name__)
