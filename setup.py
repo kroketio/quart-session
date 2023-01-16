@@ -41,7 +41,7 @@ setup(
     extras_require={
         "dotenv": ["python-dotenv"],
         "mongodb": ["motor>=2.5.1"],
-        "redis": ["aioredis>=2.0.0"]
+        "redis": ["redis>=4.4.0"]
     },
     classifiers=[
         'Environment :: Web Environment',
