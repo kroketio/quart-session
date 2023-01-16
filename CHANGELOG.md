@@ -1,3 +1,7 @@
+### 2.0.0
+
+- Move from aioredis to redis
+
 ### 1.0.7
 
 - Updated memcached support (removed asyncio.loop, removed coroutine decorator)
