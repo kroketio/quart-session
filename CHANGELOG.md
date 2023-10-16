@@ -1,3 +1,7 @@
+### 2.1.0
+
+- `session_cookie_name` fix
+
 ### 2.0.0
 
 - Move from aioredis to redis

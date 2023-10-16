@@ -92,7 +92,8 @@ class SessionInterface(QuartSessionInterface):
             app: Quart,
             request: BaseRequestWebsocket
     ) -> Optional[SecureCookieSession]:
-        sid = request.cookies.get(app.session_cookie_name)
+        cname = app.config.get('SESSION_COOKIE_NAME', 'session')
+        sid = request.cookies.get(cname)
         if self._config['SESSION_REVERSE_PROXY'] is True:
             # and no, you cannot define your own incoming
             # header, stick to standards :-)
@@ -163,13 +164,14 @@ class SessionInterface(QuartSessionInterface):
                 isinstance(response.response, FileBody):
             return
 
+        cname = app.config.get('SESSION_COOKIE_NAME', 'session')
         session_key = self.key_prefix + session.sid
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         if not session:
             if session.modified:
                 await self.delete(key=session_key, app=app)
-                response.delete_cookie(app.session_cookie_name,
+                response.delete_cookie(cname,
                                        domain=domain, path=path)
             return
         httponly = self.get_cookie_httponly(app)
@@ -187,7 +189,7 @@ class SessionInterface(QuartSessionInterface):
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
-        response.set_cookie(app.session_cookie_name, session_id,
+        response.set_cookie(cname, session_id,
                             expires=expires, httponly=httponly,
                             domain=domain, path=path, secure=secure, samesite=samesite)
 
