@@ -31,7 +31,7 @@ class ServerSideSession(SecureCookieSession):
     """Baseclass for server-side based sessions."""
 
     def __init__(self, initial=None, sid=None, permanent=None, addr=None):
-        super(ServerSideSession, self).__init__(**initial or {})
+        super(ServerSideSession, self).__init__(initial or {})
         self.sid = sid
         if permanent:
             self.permanent = permanent
