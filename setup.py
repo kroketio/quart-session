@@ -19,12 +19,12 @@ with open('README.md') as f:
 
 
 INSTALL_REQUIRES = [
-    "Quart>=0.10.0"
+    "Quart>=0.19.0"
 ]
 
 setup(
     name='Quart-Session',
-    version='2.1.0',
+    version='3.0.0',
     url='https://github.com/kroketio/quart-session',
     license='BSD',
     author='Kroket Ltd.',
