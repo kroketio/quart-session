@@ -186,7 +186,7 @@ class SessionInterface(QuartSessionInterface):
 
         await self.set(key=session_key, value=val, app=app)
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._get_signer(app).sign(session.sid).decode()
         else:
             session_id = session.sid
         response.set_cookie(cname, session_id,
